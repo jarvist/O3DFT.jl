@@ -11,6 +11,11 @@ const ε_0 =  8.854E-12 #Units: C2N−1m−2, permittivity of free space
 const q = eV = 1.60217657E-19
 const c = 3E8 # Speed of light in this universe
 const me = 9.10938291E-31 # Mass of electron (kg)
+const rbohr = 5.2917721067E-11 # Bohr radius (m)
+
+const Ha=27.2111eV
+const Ry=Ha/2
+
 const Å=1E-10 # Angstrom
 
 function ThomasFermi_T(n,V)
