@@ -31,6 +31,17 @@ function ThomasFermi_Exc(n,V)
     Exc
 end
 
+"
+ AtomicTest(Z,N=100)
+ Evaluate Thomas Fermi energy for a spherical atom, atomic charge Z.
+ N: number of grid points in 1D density repr.
+"
+function AtomicTest(Z,N=100)
+    println("AtomicTest, atomic charge: ",Z)
+    density=zeros(N)
+
+    println("Density: ",density)
+end
 
 function main()
     println("Orbital 3 Density Functional Theory - Philsophy by Numbers")
@@ -39,6 +50,10 @@ function main()
     # Does anyone know what units we should be in?
     for n in 1E25:1E25:1E26 # density /m^3
         @printf("n: %g \t T(n): %g\t T_fnderiv(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n,V),ThomasFermi_T_fnderiv(n,V),ThomasFermi_Exc(n,V))
+    end
+
+    for n=1:10
+        AtomicTest(n) #Oh uh huh make it magnificent
     end
 end
 
