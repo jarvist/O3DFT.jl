@@ -35,12 +35,44 @@ end
  AtomicTest(Z,N=100)
  Evaluate Thomas Fermi energy for a spherical atom, atomic charge Z.
  N: number of grid points in 1D density repr.
+
+ c.f. Marder, p.219, Eqn (9.76):
+ 'The energy of an atomic of nuclear charge Z is approximately -1.5375 Z^(7/3) Ry'
 "
 function AtomicTest(Z,N=100)
     println("AtomicTest, atomic charge: ",Z)
-    density=zeros(N)
+    density=zeros(N).+Z/N # I know, a bit dirty... Fills density with flat electron density as initial guess.
+    gridspacing=N/10Å
+
+    # Do some DFT here...
+    V = 0.01 # OK; should be some spherical statement here? In shell? Or volume?
+
+    # Central equation as (9.76) in Marder, dropping Dirac term
+    for i in 1:N
+
+        # Coulomb integral
+        ThomasFermi_Coulomb=0.0
+        for j in 1:N
+            if j==i 
+                continue 
+            end
+            ThomasFermi_Coulomb+= q^2*density[j]/(gridspacing*(i-j))
+        end
+
+        mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
+
+        @printf("\t i: %d mu: %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
+                i,mu,ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
+    end
+
+    # Uhm, calculate total Thomas-Fermi energy here, from density...
 
     println("Density: ",density)
+    println("Marder: E ~= -1.5375.Z^(7/3) = ",-1.5375*Z^(7/3), " Ry") # Nb: do some unit conversions
+end
+
+function UAtomic(Z,r)
+    U=-Z*q^2/r
 end
 
 function main()
