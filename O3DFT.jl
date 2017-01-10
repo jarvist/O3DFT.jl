@@ -3,6 +3,9 @@
 
 # Marder is: "Condensed Mattery Physics", Michael Marder, 2000. 
 
+# Also very useful is Andrei Postnikov's first DFT lecture, on the Thomas-Fermi method 
+# http://www.home.uni-osnabrueck.de/apostnik/Lectures/DFT-1.pdf
+
 # Constants:
 const hbar = 1.054E-34
 const h =    6.62606957E-34
@@ -55,7 +58,9 @@ function AtomicTest(Z,N=100)
     # Central equation as (9.76) in Marder, dropping Dirac term
     for i in 1:N
 
-        # Coulomb integral
+        # Coulomb integral. 
+        # Nb: as spherical atom, probably need some horrible weighting parameters for the area of the spherical shell in the range [i] or [j]
+        # i.e. currently it's some 1D pipe full of electrons with a nuclear charge at the end
         ThomasFermi_Coulomb=0.0
         for j in 1:N
             if j==i 
@@ -64,18 +69,25 @@ function AtomicTest(Z,N=100)
             ThomasFermi_Coulomb+= q^2*density[j]/(gridspacing*(i-j))
         end
 
+        # mu being the chemical potential; this pulls together (9.76)
+        # Mu is the Lagrange multiplier to enforce the constraint that the density is conserved; 
+        # helpfully this is also identical to the chemical potential
         mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
+        # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
+
+        # TODO: Insert self-consistency here...
 
         @printf("\t i: %d mu: %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
                 i,mu,ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
     end
 
-    # Uhm, calculate total Thomas-Fermi energy here, from density...
+    # TODO: calculate total Thomas-Fermi energy here, from density...
 
     println("Density: ",density)
     println("Marder: E ~= -1.5375.Z^(7/3) = ",-1.5375*Z^(7/3), " Ry") # Nb: do some unit conversions
 end
 
+" Potential due to Atomic charge; simple Coulomb form. "
 function UAtomic(Z,r)
     U=-Z*q^2/r
 end
