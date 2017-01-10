@@ -19,6 +19,12 @@ function ThomasFermi_T(n,V)
     T
 end
 
+function ThomasFermi_T_fnderiv(n,V)
+    # Following eqn. 9.76 Marder p/ 217
+    T=V * (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
+    T
+end
+
 function ThomasFermi_Exc(n,V)
     # Following eqn. 9.73 Marder p/ 217
     Exc= - 3/4 * (3/pi)^(1/3) * q^2 * n^(5/3)
@@ -32,7 +38,7 @@ function main()
     const V = 1.0
     # Does anyone know what units we should be in?
     for n in 1E25:1E25:1E26 # density /m^3
-        @printf("n: %g \t T(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n,V),ThomasFermi_Exc(n,V))
+        @printf("n: %g \t T(n): %g\t T_fnderiv(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n,V),ThomasFermi_T_fnderiv(n,V),ThomasFermi_Exc(n,V))
     end
 end
 
