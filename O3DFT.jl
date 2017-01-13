@@ -83,6 +83,7 @@ function AtomicTest(Z,N=10)
 
     for n in 1:10
         @printf("SCF Loop: %d\n",n)
+        sumE=0.0
         # Central equation as (9.76) in Marder, dropping Dirac term
         for i in 1:N
 
@@ -100,6 +101,13 @@ function AtomicTest(Z,N=10)
             i,density[i],
             ThomasFermi_T(density[i]),
             mu,ThomasFermi_T_fnderiv(density[i]),UAtomic(Z,i*gridspacing),ThomasFermi_CoulombPotential(density,i,gridspacing,N))
+
+            # OK; calculate total energy
+            E=ThomasFermi_T(density[i]) + density[i]*UAtomic(Z,i*gridspacing) + density[i]*ThomasFermi_CoulombPotential(density,i,gridspacing,N)
+            @printf("\t\tE %g = T %g + U %g + Coulomb %g\nTotal E: %g J = %g eV\n",
+            E,ThomasFermi_T(density[i]), density[i]*UAtomic(Z,i*gridspacing), density[i]*ThomasFermi_CoulombPotential(density,i,gridspacing,N),
+            sumE,sumE/q)
+            sumE+=E
 
             # Nb: horrid hack :^)
             density[i]-=mu*10E35 # vary density based on how much chemical potential mu exceeds 0
