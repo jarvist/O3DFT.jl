@@ -46,6 +46,20 @@ function UAtomic(Z,r)
     U = -k_e * Z * q^2/r
 end
 
+function ThomasFermi_CoulombPotential(density,i,gridspacing,N)
+    # Coulomb integral. 
+    # Nb: as spherical atom, probably need some horrible weighting parameters for the area of the spherical shell in the range [i] or [j]
+    # i.e. currently it's some 1D pipe full of electrons with a nuclear charge at the end
+    Potential=0.0
+    for j in 1:N
+        if j==i 
+            continue 
+        end
+        Potential+= k_e * q^2*density[j]/(gridspacing*(i-j))
+    end
+    Potential
+end
+
 
 "
  AtomicTest(Z,N=100)
@@ -58,7 +72,7 @@ end
 function AtomicTest(Z,N=10)
     println("AtomicTest, atomic charge: ",Z)
 
-    const radius=100Å
+    const radius=25Å
 
     density=zeros(N).+Z/N # I know, a bit dirty... Fills density with flat electron density as initial guess.
     gridspacing=N/radius
@@ -72,21 +86,10 @@ function AtomicTest(Z,N=10)
         # Central equation as (9.76) in Marder, dropping Dirac term
         for i in 1:N
 
-            # Coulomb integral. 
-            # Nb: as spherical atom, probably need some horrible weighting parameters for the area of the spherical shell in the range [i] or [j]
-            # i.e. currently it's some 1D pipe full of electrons with a nuclear charge at the end
-            ThomasFermi_Coulomb=0.0
-            for j in 1:N
-                if j==i 
-                    continue 
-                end
-                ThomasFermi_Coulomb+= k_e * q^2*density[j]/(gridspacing*(i-j))
-            end
-
             # mu being the chemical potential; this pulls together (9.76)
             # Mu is the Lagrange multiplier to enforce the constraint that the density is conserved; 
             # helpfully this is also identical to the chemical potential
-            mu=ThomasFermi_T_fnderiv(density[i]) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
+            mu=ThomasFermi_T_fnderiv(density[i]) + UAtomic(Z,i*gridspacing) + ThomasFermi_CoulombPotential(density,i,gridspacing,N)
             # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
 
             # From Postnikov 1.2; mu drops to zero at r=infinity, therefore mu is zero everywhere
@@ -96,7 +99,7 @@ function AtomicTest(Z,N=10)
             @printf("\t i: %d density: %g T: %g \n\t\tmu %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
             i,density[i],
             ThomasFermi_T(density[i]),
-            mu,ThomasFermi_T_fnderiv(density[i]),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
+            mu,ThomasFermi_T_fnderiv(density[i]),UAtomic(Z,i*gridspacing),ThomasFermi_CoulombPotential(density,i,gridspacing,N))
 
             # Nb: horrid hack :^)
             density[i]-=mu*10E35 # vary density based on how much chemical potential mu exceeds 0
