@@ -22,24 +22,30 @@ const Ry=Ha/2
 
 const Å=1E-10 # Angstrom
 
-function ThomasFermi_T(n,V)
+function ThomasFermi_T(n)
     # Following eqn. 9.69 Marder p/ 217
-    T=V * (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(5/3)
+    T= (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(5/3)
     T
 end
 
-function ThomasFermi_T_fnderiv(n,V)
+function ThomasFermi_T_fnderiv(n)
     # Following eqn. 9.76 Marder p/ 217
 #    @printf("ThomasFermi_T_fnderiv(%g,%g)\n",n,V) # to locate NaN error
-    T=V * (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
+    T= (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
     T
 end
 
-function ThomasFermi_Exc(n,V)
+function ThomasFermi_Exc(n)
     # Following eqn. 9.73 Marder p/ 217
     Exc= - 3/4 * (3/pi)^(1/3) * q^2 * n^(5/3)
     Exc
 end
+
+" Potential due to Atomic charge; simple Coulomb form. "
+function UAtomic(Z,r)
+    U = -k_e * Z * q^2/r
+end
+
 
 "
  AtomicTest(Z,N=100)
@@ -80,7 +86,7 @@ function AtomicTest(Z,N=10)
             # mu being the chemical potential; this pulls together (9.76)
             # Mu is the Lagrange multiplier to enforce the constraint that the density is conserved; 
             # helpfully this is also identical to the chemical potential
-            mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
+            mu=ThomasFermi_T_fnderiv(density[i]) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
             # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
 
             # From Postnikov 1.2; mu drops to zero at r=infinity, therefore mu is zero everywhere
@@ -89,8 +95,8 @@ function AtomicTest(Z,N=10)
 
             @printf("\t i: %d density: %g T: %g \n\t\tmu %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
             i,density[i],
-            ThomasFermi_T(density[i],V),
-            mu,ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
+            ThomasFermi_T(density[i]),
+            mu,ThomasFermi_T_fnderiv(density[i]),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
 
             # Nb: horrid hack :^)
             density[i]-=mu*10E35 # vary density based on how much chemical potential mu exceeds 0
@@ -108,18 +114,12 @@ function AtomicTest(Z,N=10)
     println("Marder: E ~= -1.5375.Z^(7/3) = ",-1.5375*Z^(7/3), " Ry") # Nb: do some unit conversions
 end
 
-" Potential due to Atomic charge; simple Coulomb form. "
-function UAtomic(Z,r)
-    U = -k_e * Z * q^2/r
-end
-
 function main()
     println("Orbital 3 Density Functional Theory - Philsophy by Numbers")
 
-    const V = 1.0
     # Does anyone know what units we should be in?
     for n in 1E25:1E25:1E26 # density /m^3
-        @printf("n: %g \t T(n): %g\t T_fnderiv(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n,V),ThomasFermi_T_fnderiv(n,V),ThomasFermi_Exc(n,V))
+        @printf("n: %g \t T(n): %g\t T_fnderiv(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n),ThomasFermi_T_fnderiv(n),ThomasFermi_Exc(n))
     end
 
     for n=9:10
