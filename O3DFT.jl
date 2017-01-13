@@ -29,6 +29,7 @@ end
 
 function ThomasFermi_T_fnderiv(n,V)
     # Following eqn. 9.76 Marder p/ 217
+    @printf("ThomasFermi_T_fnderiv(%g,%g)\n",n,V) # to locate NaN error
     T=V * (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
     T
 end
