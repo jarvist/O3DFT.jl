@@ -29,7 +29,7 @@ end
 
 function ThomasFermi_T_fnderiv(n,V)
     # Following eqn. 9.76 Marder p/ 217
-    @printf("ThomasFermi_T_fnderiv(%g,%g)\n",n,V) # to locate NaN error
+#    @printf("ThomasFermi_T_fnderiv(%g,%g)\n",n,V) # to locate NaN error
     T=V * (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
     T
 end
@@ -87,11 +87,13 @@ function AtomicTest(Z,N=100)
 
             # TODO: Insert self-consistency here...
 
-            @printf("\t i: %d density: %f mu: %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
+            @printf("\t i: %d density: %f T: %g mu %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
             i,density[i],mu,
+            ThomasFermi_T(density[i],V),
             ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
 
-            density[i]-=mu*10E45 # vary density based on how much chemical potential mu exceeds 0 
+            density[i]-=mu*10E45 # vary density based on how much chemical potential mu exceeds 0
+            if density[i]<0.0; density[i]=0.0; end
         end
     end
 
