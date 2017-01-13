@@ -60,32 +60,38 @@ function AtomicTest(Z,N=100)
     V = 4/3*pi*radius^3 # Volume of total sphere of charge density considered. 
     # Nb: Not sure if corect; Kinetic energy T is proport. to V. Defo volume and not potential?
 
-    # Central equation as (9.76) in Marder, dropping Dirac term
-    for i in 1:N
+    for n in 1:100
+        @printf("SCF Loop: %d\n",n)
+        # Central equation as (9.76) in Marder, dropping Dirac term
+        for i in 1:N
 
-        # Coulomb integral. 
-        # Nb: as spherical atom, probably need some horrible weighting parameters for the area of the spherical shell in the range [i] or [j]
-        # i.e. currently it's some 1D pipe full of electrons with a nuclear charge at the end
-        ThomasFermi_Coulomb=0.0
-        for j in 1:N
-            if j==i 
-                continue 
+            # Coulomb integral. 
+            # Nb: as spherical atom, probably need some horrible weighting parameters for the area of the spherical shell in the range [i] or [j]
+            # i.e. currently it's some 1D pipe full of electrons with a nuclear charge at the end
+            ThomasFermi_Coulomb=0.0
+            for j in 1:N
+                if j==i 
+                    continue 
+                end
+                ThomasFermi_Coulomb+= q^2*density[j]/(gridspacing*(i-j))
             end
-            ThomasFermi_Coulomb+= q^2*density[j]/(gridspacing*(i-j))
+
+            # mu being the chemical potential; this pulls together (9.76)
+            # Mu is the Lagrange multiplier to enforce the constraint that the density is conserved; 
+            # helpfully this is also identical to the chemical potential
+            mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
+            # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
+
+            # From Postnikov 1.2; mu drops to zero at r=infinity, therefore mu is zero everywhere
+
+            # TODO: Insert self-consistency here...
+
+            @printf("\t i: %d density: %f mu: %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
+            i,density[i],mu,
+            ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
+
+            density[i]-=mu*10E45 # vary density based on how much chemical potential mu exceeds 0 
         end
-
-        # mu being the chemical potential; this pulls together (9.76)
-        # Mu is the Lagrange multiplier to enforce the constraint that the density is conserved; 
-        # helpfully this is also identical to the chemical potential
-        mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
-        # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
-
-        # From Postnikov 1.2; mu drops to zero at r=infinity, therefore mu is zero everywhere
-
-        # TODO: Insert self-consistency here...
-
-        @printf("\t i: %d mu: %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
-                i,mu,ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
     end
 
     # TODO: calculate total Thomas-Fermi energy here, from density...
@@ -108,7 +114,7 @@ function main()
         @printf("n: %g \t T(n): %g\t T_fnderiv(n): %g\t E_xc(n): %g\n",n,ThomasFermi_T(n,V),ThomasFermi_T_fnderiv(n,V),ThomasFermi_Exc(n,V))
     end
 
-    for n=1:10
+    for n=9:10
         AtomicTest(n) #Oh uh huh make it magnificent
     end
 end
