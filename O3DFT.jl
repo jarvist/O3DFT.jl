@@ -13,6 +13,7 @@ const kb =   8.6173324E-5 # in units of eV
 const ε_0 =  8.854E-12 #Units: C2N−1m−2, permittivity of free space
 const q = eV = 1.60217657E-19
 const c = 3E8 # Speed of light in this universe
+const k_e = 8.98755E+9 # Coulomb's constant
 const me = 9.10938291E-31 # Mass of electron (kg)
 const rbohr = 5.2917721067E-11 # Bohr radius (m)
 
@@ -48,11 +49,10 @@ end
  c.f. Marder, p.219, Eqn (9.76):
  'The energy of an atomic of nuclear charge Z is approximately -1.5375 Z^(7/3) Ry'
 "
-function AtomicTest(Z,N=100)
+function AtomicTest(Z,N=10)
     println("AtomicTest, atomic charge: ",Z)
 
     const radius=100Å
-
 
     density=zeros(N).+Z/N # I know, a bit dirty... Fills density with flat electron density as initial guess.
     gridspacing=N/radius
@@ -61,7 +61,7 @@ function AtomicTest(Z,N=100)
     V = 4/3*pi*radius^3 # Volume of total sphere of charge density considered. 
     # Nb: Not sure if corect; Kinetic energy T is proport. to V. Defo volume and not potential?
 
-    for n in 1:100
+    for n in 1:10
         @printf("SCF Loop: %d\n",n)
         # Central equation as (9.76) in Marder, dropping Dirac term
         for i in 1:N
@@ -74,7 +74,7 @@ function AtomicTest(Z,N=100)
                 if j==i 
                     continue 
                 end
-                ThomasFermi_Coulomb+= q^2*density[j]/(gridspacing*(i-j))
+                ThomasFermi_Coulomb+= k_e * q^2*density[j]/(gridspacing*(i-j))
             end
 
             # mu being the chemical potential; this pulls together (9.76)
@@ -87,12 +87,13 @@ function AtomicTest(Z,N=100)
 
             # TODO: Insert self-consistency here...
 
-            @printf("\t i: %d density: %f T: %g \n\t\tmu %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
-            i,density[i],mu,
+            @printf("\t i: %d density: %g T: %g \n\t\tmu %g = T_fnderiv %g + UAtomic: %g + Coulomb %g\n",
+            i,density[i],
             ThomasFermi_T(density[i],V),
-            ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
+            mu,ThomasFermi_T_fnderiv(density[i],V),UAtomic(Z,i*gridspacing),ThomasFermi_Coulomb)
 
-            density[i]-=mu*10E45 # vary density based on how much chemical potential mu exceeds 0
+            # Nb: horrid hack :^)
+            density[i]-=mu*10E35 # vary density based on how much chemical potential mu exceeds 0
             if density[i]<0.0; density[i]=0.0; end
         end
         # Impose constraint sum. density = Z
@@ -109,7 +110,7 @@ end
 
 " Potential due to Atomic charge; simple Coulomb form. "
 function UAtomic(Z,r)
-    U=-Z*q^2/r
+    U = -k_e * Z * q^2/r
 end
 
 function main()
