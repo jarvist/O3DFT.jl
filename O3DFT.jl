@@ -49,11 +49,16 @@ end
 "
 function AtomicTest(Z,N=100)
     println("AtomicTest, atomic charge: ",Z)
+
+    const radius=100Å
+
+
     density=zeros(N).+Z/N # I know, a bit dirty... Fills density with flat electron density as initial guess.
-    gridspacing=N/10Å
+    gridspacing=N/radius
 
     # Do some DFT here...
-    V = 0.01 # OK; should be some spherical statement here? In shell? Or volume?
+    V = 4/3*pi*radius^3 # Volume of total sphere of charge density considered. 
+    # Nb: Not sure if corect; Kinetic energy T is proport. to V. Defo volume and not potential?
 
     # Central equation as (9.76) in Marder, dropping Dirac term
     for i in 1:N
@@ -74,6 +79,8 @@ function AtomicTest(Z,N=100)
         # helpfully this is also identical to the chemical potential
         mu=ThomasFermi_T_fnderiv(density[i],V) + UAtomic(Z,i*gridspacing) + ThomasFermi_Coulomb
         # So I gues we could use the fact that the chem potential is constant, to start moving electron density around?
+
+        # From Postnikov 1.2; mu drops to zero at r=infinity, therefore mu is zero everywhere
 
         # TODO: Insert self-consistency here...
 
