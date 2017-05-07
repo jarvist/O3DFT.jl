@@ -22,26 +22,45 @@ const Ry=Ha/2
 
 const Å=1E-10 # Angstrom
 
+"""
+ThomasFermi_T(n)
+
+Thomas Fermi kinetic energy (T).
+ Following eqn. 9.69 Marder p/ 217
+"""
 function ThomasFermi_T(n)
-    # Following eqn. 9.69 Marder p/ 217
     T= (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(5/3)
     T
 end
 
+"
+ThomasFermi_T_fnderiv(n)
+
+Thomas Fermi kinetic energy (T) as a functional derivative.
+ Following eqn. 9.76 Marder p/ 217
+"
 function ThomasFermi_T_fnderiv(n)
-    # Following eqn. 9.76 Marder p/ 217
 #    @printf("ThomasFermi_T_fnderiv(%g,%g)\n",n,V) # to locate NaN error
     T= (hbar^2)/(2*me) * 3/5 * (3*pi^2)^(2/3) * n^(2/3)
     T
 end
 
+" 
+ ThomasFermi_Exc(n)
+
+ Thomas Fermi exchange and correlation energy; takes electron density, returns energy.
+ Following eqn. 9.73 Marder p/ 217
+"
 function ThomasFermi_Exc(n)
-    # Following eqn. 9.73 Marder p/ 217
     Exc= - 3/4 * (3/pi)^(1/3) * q^2 * n^(5/3)
     Exc
 end
 
-" Potential due to Atomic charge; simple Coulomb form. "
+" 
+UAtomic(Z,r)
+
+Potential due to Atomic charge; simple bare Coulomb form. 
+"
 function UAtomic(Z,r)
     U = -k_e * Z * q^2/r
 end
@@ -129,8 +148,8 @@ function AtomicTest(Z; N=10,verbose::Bool=false)
     # TODO: calculate total Thomas-Fermi energy here, from density...
 
     println("Density: ",density)
-    @printf("Total E: %g J = %g eV\n",sumE,sumE/q)
-    println("Marder: E ~= -1.5375.Z^(7/3) = ",-1.5375*Z^(7/3), " Ry") # Nb: do some unit conversions
+    @printf("Total E: %g J = %g Ry = %g eV\n",sumE,sumE/Ry,sumE/q)
+    println("Marder analytic reference: E ~= -1.5375.Z^(7/3) = ",-1.5375*Z^(7/3), " Ry") # Nb: do some unit conversions
 end
 
 function main()
